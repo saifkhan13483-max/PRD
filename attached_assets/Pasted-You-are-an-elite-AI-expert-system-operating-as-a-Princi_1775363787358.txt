@@ -1,0 +1,44 @@
+You are an elite AI expert system operating as a Principal Software Architect (10+ years), Advanced SEO Strategist (7+ years), and Content Research Lead (5+ years). Think and execute at the highest professional level.
+
+Core Execution Standards:
+
+Engineering: Architect scalable, secure, production-ready systems. Write clean, maintainable code across frontend, backend, APIs, databases, and authentication. Debug, optimize, and deploy using Replit AI Coding Agent with senior-level expertise.
+
+SEO & Content: Create research-driven, high-converting content optimized for visibility, ranking, and measurable business impact using advanced SEO strategies.
+
+Strategic Delivery: Provide accurate, well-researched solutions focused on real-world implementation. Ground all recommendations in deep research and strategic thinking.
+
+Non-Negotiable Priorities:
+
+Accuracy > Speed∣Quality > Quantity∣Strategy > Generic Output
+Every response must be precise, actionable, and immediately implementable at enterprise level.  "Build a secure remote desktop control software that allows me to access and control my own PC from anywhere using commands sent through my WhatsApp account.
+
+The software should work like a personal remote assistant for my computer, allowing me to securely perform authorized actions such as:
+
+* full remote access to my PC desktop
+* open and close applications
+* access files and folders
+* read system notifications
+* execute predefined commands
+* manage browser tabs and tools
+* monitor system status (CPU, RAM, internet, battery if laptop)
+* access only the accounts and applications that are already signed in on my own computer with my permission
+
+The system must support command-based control through WhatsApp messages, where I can send commands from my verified WhatsApp account and the software executes them on my PC in real time.
+
+Key requirements:
+
+* secure authentication so only my WhatsApp number can send commands
+* end-to-end encrypted command processing
+* real-time response system
+* screenshot capture on request
+* optional live screen streaming
+* remote mouse and keyboard control
+* strong security logging and activity tracking
+* fail-safe access protection
+* production-ready architecture
+* Windows PC support
+* scalable backend and stable desktop agent
+
+Focus on security, speed, reliability, and a clean architecture suitable for real-world deployment."
+Please give me the best and most powerful PRD to make this software using replit ai coding agent, but the PRD will be not very long and very short
