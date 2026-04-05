@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "TIbU713HwkXUZ62-X8cFR"
+uri = "file://PRD.md"
+type = "text"
+title = "WhatsApp Remote Desktop Control — PRD"
