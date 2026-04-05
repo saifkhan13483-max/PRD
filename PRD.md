@@ -66,7 +66,7 @@ A horizontally scalable, cloud-native, multi-tenant remote desktop control platf
 │         RESPONSE ROUTER MICROSERVICE                     │
 │  • Consumes result events from Kafka                    │
 │  • Routes reply to correct WhatsApp thread              │
-│  • Uploads media to CDN (S3 / Cloudflare R2)           │
+│  • Uploads media to Cloudinary (auto-optimised + CDN)   │
 │  • Sends reply via WhatsApp Cloud API                   │
 │  • Timeout escalation: notifies user if PC unreachable  │
 └─────────────────────────────────────────────────────────┘
@@ -85,7 +85,7 @@ A horizontally scalable, cloud-native, multi-tenant remote desktop control platf
 | **command-router** | Parse command, resolve PC, publish to Kafka | Stateless; HPA |
 | **agent-relay** | Maintain WSS connections to desktop agents | Sticky sessions; scale by PC count |
 | **response-router** | Consume results, send WhatsApp replies | Stateless; HPA |
-| **media-uploader** | Receive binary payloads, upload to CDN | Stateless; HPA |
+| **media-uploader** | Receive binary payloads, upload to Cloudinary | Stateless; HPA |
 | **scheduler** | Cron job management per PC | Single-leader via distributed lock |
 | **pc-registry** | CRUD for PC metadata, online status | Read replicas for list queries |
 | **auth-service** | JWT issuance, device cert rotation, phone allowlist | Stateless; cached certs in Redis |
@@ -101,11 +101,11 @@ A horizontally scalable, cloud-native, multi-tenant remote desktop control platf
 | **Multi-PC Registry** | Register unlimited PCs; address by alias (`@home`, `@office`) | DB-backed per tenant |
 | **Multi-Tenant Isolation** | Each user's PCs, logs, and commands are fully isolated | Tenant-scoped DB partitions |
 | **Command Execution** | Shell, open/close apps, file ops | Per-PC isolated queue |
-| **Screenshot on Demand** | Capture → compress → CDN upload → WhatsApp image | CDN scales globally |
+| **Screenshot on Demand** | Capture → compress → Cloudinary upload → WhatsApp image | Cloudinary CDN scales globally |
 | **System Status** | CPU, RAM, disk, battery, network latency | Streamed via WebSocket |
 | **Browser Control** | Open URLs, manage tabs via Chrome DevTools Protocol | Per-PC agent |
 | **Mouse & Keyboard** | Remote cursor, click, type via pyautogui | Per-PC agent |
-| **File Access** | List, read, upload/download via cloud buffer | Object storage (S3/R2) |
+| **File Access** | List, read, upload/download via cloud buffer | Cloudinary raw file storage |
 | **Live Screen Stream** | MJPEG/WebRTC stream, CDN-distributed | Media server (optional) |
 | **Scheduled Commands** | Cron-style commands run at set times | Temporal.io distributed scheduler |
 | **Command History** | Full searchable log of all commands per PC | PostgreSQL partitioned table |
@@ -144,14 +144,14 @@ A horizontally scalable, cloud-native, multi-tenant remote desktop control platf
 | **Real-Time Channel** | WebSocket (WSS/mTLS) + heartbeat every 30s | One WSS conn per PC; sticky agent-relay |
 | **Database** | PostgreSQL 16 (partitioned) + PgBouncer + read replicas | Tenant partitioning; connection pooling |
 | **Cache** | Redis Cluster (sessions, rate limits, PC status) | Sharded; read-through cache pattern |
-| **File/Media Storage** | Cloudflare R2 / AWS S3 Multi-Region | Global CDN; signed URLs |
+| **File/Media Storage** | Cloudinary (images, screenshots, raw files) | Built-in global CDN; auto-optimisation; signed URLs |
 | **Screen Stream** | OpenCV MJPEG → WebRTC | TURN/STUN server; media relay |
 | **Scheduler** | Temporal.io (distributed workflows) | Fault-tolerant, durable execution |
 | **Auth** | JWT device certs + HMAC + phone allowlist + Vault | Stateless JWT; cert rotation automated |
 | **Service Mesh** | Istio or Linkerd (production) | mTLS between services; traffic policies |
 | **Observability** | Prometheus + Grafana + Loki + Jaeger + OpenTelemetry | Centralised; per-region collectors |
 | **Deployment** | Docker + Helm + Kubernetes (GKE / EKS) | HPA + VPA; blue-green deployments |
-| **CDN/Edge** | Cloudflare (WAF + Workers + R2) | Global edge; geo-routing |
+| **CDN/Edge** | Cloudflare (WAF + Workers) + Cloudinary CDN | Global edge; geo-routing; media optimisation |
 | **Feature Flags** | Unleash (self-hosted) or LaunchDarkly | Gradual rollouts; kill switches |
 | **CI/CD** | GitHub Actions + ArgoCD (GitOps) | Automated, auditable deployments |
 
@@ -332,7 +332,7 @@ Geo-routing:
 - [ ] Desktop agent: install, auto-start on Windows boot
 - [ ] Commands: `!status`, `!screenshot`, `!run`, `!close`, `!files`
 - [ ] PostgreSQL schema + command log + tenant table
-- [ ] Screenshot → S3/R2 → WhatsApp media reply
+- [ ] Screenshot → Cloudinary upload (auto-optimised) → WhatsApp media reply
 - [ ] Redis Streams as lightweight event bus
 
 ### Phase 2 — Multi-PC + Broker (Weeks 3–4)
@@ -383,7 +383,7 @@ Geo-routing:
 | **Event Bus** | Redis Streams | Apache Kafka (partitioned, replicated) |
 | **Database** | PostgreSQL single | PostgreSQL partitioned + PgBouncer + read replicas |
 | **Cache** | Redis single | Redis Cluster (sharded) |
-| **Media Storage** | Cloudflare R2 | R2 / S3 multi-region + CDN |
+| **Media Storage** | Cloudinary (free tier) | Cloudinary (paid) — global CDN, auto-optimisation, transformations |
 | **Desktop Agent** | `.exe` installer, Windows Task Scheduler | Auto-update via GitHub Releases + Sparkle |
 | **Service Mesh** | None (MVP) | Istio with mutual TLS between all services |
 | **Edge** | Replit domain | Cloudflare WAF + geo-routing + DDoS |
@@ -416,7 +416,7 @@ Geo-routing:
 1. **Stateless API Gateway** — add instances behind a load balancer; Kubernetes HPA scales on CPU/RPS
 2. **Kafka Event Streaming** — partitioned by owner_id; consumer groups scale horizontally; 7-day replay window
 3. **Tenant Isolation** — PostgreSQL partitioning by tenant; row-level security; bulkhead per tier
-4. **CDN for Media** — screenshots/streams served from edge, never bottlenecking the API
+4. **Cloudinary for Media** — screenshots auto-optimised and served via Cloudinary's global CDN; built-in transformations (resize, format conversion) reduce payload size before WhatsApp delivery
 5. **Read Replicas + PgBouncer** — PostgreSQL read replicas for log queries; connection pooling handles burst
 6. **Agent Self-Healing** — lost connections use exponential backoff; circuit breakers prevent cascade failures
 7. **Idempotency** — UUID-keyed commands prevent duplicate execution during retries at any scale
