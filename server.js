@@ -63,7 +63,7 @@ const html = (content) => `<!DOCTYPE html>
 </head>
 <body>
 <div class="container">
-  <div class="badge">PRD v1.0</div>
+  <div class="badge">PRD v2.0 — Scalable</div>
   ${content}
   <p class="meta" style="margin-top:40px;">Generated for Replit AI Coding Agent — April 2026</p>
 </div>
